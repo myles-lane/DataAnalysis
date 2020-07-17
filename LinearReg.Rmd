@@ -1,0 +1,113 @@
+---
+title: "Linear Regression - Predicting Individual Medical Costs Billed by Health Insurance"
+author: "Myles Lane"
+subtitle: "4/18/2020"
+output: html_document
+---
+
+## Exploratory Data Analysis
+In this dataset there are 1338 observations across 7 variables. Categorical variables include sex (gender), children (number of dependents), smoker (yes or no), and region (respondent residential area). 50.5% are male respondents, 42.9% have no children, 79.5% do not smoke, and 27.2% come from the southeast. Continuous variables include age (in years), BMI (body mass index), and charges (individual medical costs billed by health insurance). The average age in the dataset is 39 with a standard deviation of 14. The average BMI is 30.7 with a standard deviation of 6.1.The average amount of insurance charges is \$13,270 with a standard deviation of \$12,110.
+
+```{r warning=FALSE, message=FALSE, results="hide", include=FALSE}
+# insert import & exploratory data analysis code here
+library(Hmisc)
+library(tidyverse)
+library(ggplot2)
+setwd("/Users/myles/Downloads/")
+insurance <- read.csv("insurance.csv")
+
+#Descriptive statistics
+describe(insurance)
+sd(insurance$age, na.rm = TRUE)
+sd(insurance$bmi, na.rm = TRUE)
+sd(insurance$charges, na.rm = TRUE)
+```
+
+
+## Data Visualization
+**Sex:** Figure 1 contains many outliers in both groups. It appears that males have a larger interquartile range of about \$15,000 while females have a range of \$10,000. However, both have a median just under \$10,000.
+
+**Children:** Figure 2 shows medical costs by number of children. People with no children have a median cost of about \$10,000 with most of them having between \$2,500 and \$14,500 which is a large range. Some also have as high as \$30,000 with many outliers even higher than that. People with 1 child have a median cost of about \$8,000 with most having between \$5,000 and \$16,000. Some also have as high as \$33,000 with outliers higher than that. People with 2 children have a median cost of about \$9,000 with most having between \$7,500 and \$31,000. Some also have as high as \$40,000 with a few outliers above that. People with 3 children have a median cost of about \$12,000 with most people having between \$7,000 and \$19,000. Some go as high as \$37,500 with many outliers above that. People with 4 children have a median cost of about \$12,500 with most falling between \$7,500 and \$17,500. Some are as high as \$25,000 with only two outliers higher. Finally, people with 5 children have a median of \$8,000 with most falling between \$6,000 and \$10,000. Some are as high as \$14,000 with only 1 outlier higher than that.
+
+**Smoking:** Figure 3 shows medical costs by smokers and non-smokers. For those who don't smoke, they have a median cost of \$7,500 with most falling between \$4,000 and \$11,000. Some go as high as \$22,500 with many outliers above that. For those that do smoke, they have a median cost of \$34,000 with most falling between \$21,000 and \$41,000. Some go as high as \$67,500.
+
+**Region:** Figure 4 shows medical costs by region. For those in the northeast, the median cost is \$10,000 with most falling between \$5,000 and \$17,000. Some go as high as \$33,000 with many outliers above that. For those in the northwest, the median cost is\$8,000 with most falling between \$5,000 and \$15,000. Some go as high as \$30,000 with more outliers above that. For those in the southeast, people have a median cost of \$9,000 with most falling between \$4,000 and \$30,000. Some go as high as \$42,000 with more outliers above that. For those in the southwest, there is a median cost of \$8,000 and \$5,000 and \$12,500. Some go as high as \$26,000 with many outliers above that.
+
+**Age:** Figure 5 shows medical costs by age. The scatterplot appears to show a positive relationship between the two variables. It also shows a weird split into three different sections. One around the cost of \$5,000, another at \$20,000 and one more at \$40,000. 
+
+**BMI:** Figure 6. shows medical costs by body mass index. The scatter plot has a regression line that illustrates a positive relationship between the variables. The points are tightly packed from the range of 20 to 40 and spreads out fairly evenly outside of that. 
+
+```{r warning=FALSE, message=FALSE, echo=FALSE}
+# insert data visualization code here
+#Boxplots of Categoricals
+ggplot(data = insurance) +
+  geom_boxplot(mapping = aes(x=sex, y=charges, fill=sex)) +
+  scale_y_continuous(breaks = seq(0,60000, by=5000))+
+  labs(title = "Figure 1.  Individual Medical Costs vs. Sex", x="Sex", y="Medical Costs\n ($USD)")
+
+ggplot(data = insurance) +
+  geom_boxplot(mapping = aes(x=as.factor(children), y=charges, color=factor(children))) +
+  scale_y_continuous(breaks = seq(0,60000, by=5000))+
+  labs(title = "Figure 2. Individual Medical Costs vs. Number of Children", x="Number of Children", y="Medical Costs\n ($USD)")
+
+ggplot(data = insurance) +
+  geom_boxplot(mapping = aes(x=smoker, y=charges, fill=smoker)) +
+  scale_y_continuous(breaks = seq(0,60000, by=5000))+
+  labs(title = "Figure 3. Individual Medical Costs vs. Smoker", x="Are you a smoker", y="Medical Costs\n ($USD)")
+
+ggplot(data = insurance) +
+  geom_boxplot(mapping = aes(x=region, y=charges, fill=region)) +
+  scale_y_continuous(breaks = seq(0,60000, by=5000))+
+  labs(title = "Figure 4. Individual Medical Costs vs. Region", x="Region", y="Medical Costs\n ($USD)")
+
+#Scatterplots of Continuous
+ggplot(insurance, aes(x=age,y=charges)) +
+  geom_point()+
+  labs(title = "Figure 5. Individual Medical Costs vs Age", x="Age", y="Medical Costs\n ($USD)")
+
+ggplot(insurance, aes(x=bmi,y=charges)) +
+  geom_point()+
+  geom_smooth(method = "lm")+
+  labs(title = "Figure 6. Individual Medical Costs vs Body Mass Index", x="BMI", y="Medical Costs\n ($USD)")
+```
+
+## Multiple Linear Regression Results
+**Age:** *For a year increase in age, the amount of individual medical health insurance costs increases by an average of $257.19, holding all other variables constant.*
+
+**Sex:** *The amount of individual medical health insurance costs is on average $128.16 less in males than in females, holding all other variables constant.*
+
+**BMI:** *For a 1-unit increase in BMI, the amount of individual medical health insurance costs increases by an average of $336.91, holding all other variables constant.*
+
+**Children:** *The amount of individual medical health insurance costs is on average $390.98 more in people with 1 dependent than people with none, holding all other variables constant.*
+
+*The amount of individual medical health insurance costs is on average $1635.78 more in people with 2 dependent than people with none, holding all other variables constant.*
+
+*The amount of individual medical health insurance costs is on average $964.34 more in people with 3 dependent than people with none, holding all other variables constant.*
+
+*The amount of individual medical health insurance costs is on average $2947.37 more in people with 4 dependent than people with none, holding all other variables constant.*
+
+*The amount of individual medical health insurance costs is on average $1116.04 more in people with 5 dependent than people with none, holding all other variables constant.*
+
+**Smoker:** *The amount of individual medical health insurance costs is on average $23,836 more in smokers than non-smokers, holding all other variables constant.*
+
+**Region:** *The amount of individual medical health insurance costs is on average $380.04 less in people from the northwest than people from the northeast, holding all other variables constant.*
+
+*The amount of individual medical health insurance costs is on average $1033.14 less in people from the southeast than people from the northeast, holding all other variables constant.*
+
+*The amount of individual medical health insurance costs is on average $952.89 less in people from the southwest than people from the northeast, holding all other variables constant.*
+
+```{r warning=FALSE, message=FALSE, results="hide", include=FALSE}
+# insert linear regression code
+fit1 = lm(charges ~ age + sex + bmi + factor(children) + smoker + region, data = insurance)
+summary(fit1)
+
+```
+
+## Linear Regression Assumptions
+According to the Scale-Location graph, it appears that the data violates the homoscedasticity assumption because the points are not randomly spread out and the line has a positive slope.
+
+```{r warning=FALSE, message=FALSE, echo=FALSE}
+# insert regression assumption plots code
+plot(fit1)
+```
+

@@ -1,0 +1,114 @@
+---
+title: "Behavioral Risk Factor Surveillance System Analysis"
+author: "Myles Lane"
+date: "3/23/2020"
+output: html_document
+---
+
+
+## Import and Install
+
+```{r message = FALSE, warning=FALSE}
+#Set Directory, Import files and libraries
+setwd("/Users/myles/Desktop/Home/INST408/ICE/ICE_7")
+
+BRFSS<- read.csv("BRFSS.csv")
+
+library(ggplot2)
+library(summarytools)
+library(dplyr)
+```
+
+
+## EDA
+
+```{r message = FALSE, warning=FALSE}
+#Filter to only include rows with weight recorded
+BRFSS_weight <- filter(BRFSS,WEIGHT2 < 1000)
+
+#Create Scatterplot of Age by Weight
+ggplot(data = BRFSS_weight) +
+  geom_point(mapping = aes(x=AGE, y=WEIGHT2, color=WEIGHT2)) +
+  labs(title="Plot of Age by Weight",x="Age",y="Weight") +
+  scale_color_gradient()
+```
+
+It appears there is no correlation between age and weight in this scatterplot.
+
+
+
+```{r message = FALSE, warning=FALSE}
+#Recode marital status
+BRFSS_marital <- mutate(BRFSS, MARITAL = ifelse(MARITAL == 1, "Married", 
+                                         ifelse(MARITAL == 2, "Divorce",
+                                         ifelse(MARITAL == 3, "Widowed", 
+                                         ifelse(MARITAL == 4, "Separated", 
+                                         ifelse(MARITAL == 5, "Never Married", 
+                                         ifelse(MARITAL == 6, "Unmarried", "Refused")))))))
+
+#Create boxplot of marital by age
+ggplot(data = BRFSS_marital) +
+  geom_boxplot(mapping = aes(x=MARITAL, y=AGE, fill=MARITAL)) +
+  labs(title="Boxplot of Marital Status by Age",x="Marital Status",y="Age", fill="Status")
+```
+
+This boxplot shows a median age of around 58 for those that are divorced or married. The median age is slightly lower for respondents that are separated or refused to answer at 53. The lowest median ages at 38 are those that have never married or are unmarried. Finally, the highest median age at age 74 is those that are widowed, however this group has several outliers that are much younger.
+
+
+
+
+
+```{r message = FALSE, warning=FALSE}
+#Recode education
+BRFSS_educa <- mutate(BRFSS, EDUCA = ifelse(EDUCA==1, "Never Attended", 
+                                     ifelse(EDUCA==2, "Elementary School", 
+                                     ifelse(EDUCA==3, "Some High School", 
+                                     ifelse(EDUCA==4, "High School Graduate", 
+                                     ifelse(EDUCA==5, "Some College", 
+                                     ifelse(EDUCA==6, "College Graduate", 
+                                     ifelse(EDUCA==9, "Refused", "Missing"))))))))
+#Bar chart of education
+ggplot(data = BRFSS_educa) +
+  geom_bar(mapping = aes(x=EDUCA, fill=EDUCA))+
+  labs(title="Plot of Education Level",x="Level",y="Count", fill="Level")
+
+```
+
+This bar graph shows that there are a lot of respondents that have graduated college or reached a higher level of education. Around 1100 of the respondents graduated high school and almost 750 graduated college. 
+
+
+
+```{r}
+#Frequency table of education
+freq(BRFSS_educa$EDUCA)
+```
+
+This table shows a more detailed look at what the graph above shows. Most of the data is made up of people who at least graduated high school. Only 18% have less than a high school education.
+
+
+
+```{r}
+#Recode Sex variable
+BRFSS_weight<- mutate(BRFSS_weight, SEX = ifelse(SEX==1, "Male", 
+                                          ifelse(SEX==2, "Female", SEX)))
+
+ggplot(data=BRFSS_weight) +
+  geom_point(mapping = aes(x=AGE,y=WEIGHT2, color=SEX)) 
+
+```
+
+This scatterplot is the same as the previous scatterplot except grouped by the sex variable. Again there is no correlation between the variables, however the male weights seem to be higher than females, which could be expected.
+
+
+
+```{r}
+#Filter out those that said none or were missing in mental health variable
+BRFSS_mental <- filter(BRFSS, MENTHLTH < 31) 
+
+#Histogram of mental health
+ggplot(data = BRFSS_mental) +
+  geom_histogram(mapping = aes(x=MENTHLTH), bins = 10, fill="Dark red")+
+  labs(title="Plot of Mental Health",x="Days",y="Count")
+```
+
+The histogram shows spikes in the number of days with bad mental health at 5 days and 30 days. These peak at around 240 and 260 cases, respectively. 
